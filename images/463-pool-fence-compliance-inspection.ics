@@ -1,0 +1,19 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//WooThemes//WooCommerce Bookings 1.15.79//EN
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Pool Compliance SA
+X-ORIGINAL-URL:https://poolcompliancesa.com.au/
+X-WR-CALDESC:Bookings from Pool Compliance SA
+X-WR-TIMEZONE:UTC
+BEGIN:VEVENT
+DTEND;VALUE=DATE:20250117
+UID:wc_bookings_463
+DTSTAMP:20250117T121851
+LOCATION:
+DESCRIPTION:
+URL;VALUE=URI:https://poolcompliancesa.com.au/my-account/view-order/464/
+SUMMARY:#463 - Pool Fence Compliance Inspection
+DTSTART;VALUE=DATE:20250117
+END:VEVENT
+END:VCALENDAR
