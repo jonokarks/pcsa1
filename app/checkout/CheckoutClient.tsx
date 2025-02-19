@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import PaymentForm from "@/components/PaymentForm";
 
@@ -28,9 +28,8 @@ export default function CheckoutClient() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [includeCprSign, setIncludeCprSign] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string>("");
-  const [paymentIntentId, setPaymentIntentId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   
   const {
     register,
@@ -42,70 +41,16 @@ export default function CheckoutClient() {
   const cprSignPrice = 30;
   const total = basePrice + (includeCprSign ? cprSignPrice : 0);
 
-  useEffect(() => {
-    let mounted = true;
-
-    const createInitialPaymentIntent = async () => {
-      if (!mounted) return;
-      
-      setError(null);
-      
-      try {
-        console.log('Creating payment intent...');
-        const response = await fetch('/.netlify/functions/create-payment-intent', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            amount: total,
-            items: [defaultService],
-            includeCprSign,
-          }),
-        });
-
-        if (!mounted) return;
-
-        console.log('Response status:', response.status);
-        const responseText = await response.text();
-        console.log('Response body:', responseText);
-
-        if (!response.ok) {
-          throw new Error(`Failed to create payment intent: ${responseText}`);
-        }
-
-        const data = JSON.parse(responseText);
-        
-        if (data.clientSecret && data.paymentIntentId) {
-          setClientSecret(data.clientSecret);
-          setPaymentIntentId(data.paymentIntentId);
-        } else {
-          throw new Error('No client secret or payment intent ID in response');
-        }
-      } catch (error) {
-        if (mounted) {
-          setError('Error initializing payment. Please refresh the page and try again.');
-        }
-      }
-    };
-
-    createInitialPaymentIntent();
-
-    return () => {
-      mounted = false;
-    };
-  }, [includeCprSign, total]);
-
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
+      // Create payment intent only when form is submitted
       const response = await fetch('/.netlify/functions/create-payment-intent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
         },
         body: JSON.stringify({
           amount: total,
@@ -120,12 +65,11 @@ export default function CheckoutClient() {
           ],
           includeCprSign,
           customerDetails: data,
-          paymentIntentId,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update payment intent');
+        throw new Error('Failed to create payment intent');
       }
 
       const result = await response.json();
@@ -134,13 +78,20 @@ export default function CheckoutClient() {
         throw new Error(result.error);
       }
 
+      // Set client secret to trigger PaymentForm render
+      setClientSecret(result.clientSecret);
+
+      // Wait for PaymentForm to initialize
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       if (!window.confirmStripePayment) {
         throw new Error('Payment form not initialized');
       }
       
-      const paymentIntent = await window.confirmStripePayment();
+      // Confirm the payment
+      const paymentResult = await window.confirmStripePayment();
       
-      if (paymentIntent.status === 'succeeded') {
+      if (paymentResult.status === 'succeeded') {
         router.push("/checkout/success");
       } else {
         throw new Error('Payment failed');
