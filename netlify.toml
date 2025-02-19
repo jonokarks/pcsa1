@@ -21,7 +21,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["stripe"]
+  external_node_modules = ["stripe", "nodemailer"]
   included_files = ["app/api/**/*"]
 
 [[headers]]
@@ -36,4 +36,12 @@
 
 [functions.next]
   included_files = ["app/api/**/*"]
-  external_node_modules = ["stripe"]
+  external_node_modules = ["stripe", "nodemailer"]
+
+[template.environment]
+  SMTP_HOST = "SMTP server hostname (e.g., smtp.gmail.com)"
+  SMTP_PORT = "SMTP server port (e.g., 587)"
+  SMTP_USER = "SMTP username/email"
+  SMTP_PASS = "SMTP password/app password"
+  SMTP_SECURE = "Use TLS (true/false)"
+  SMTP_FROM = "From email address for notifications"

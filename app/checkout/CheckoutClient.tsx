@@ -180,6 +180,20 @@ export default function CheckoutClient() {
       const paymentResult = await window.confirmStripePayment();
       
       if (paymentResult.status === 'succeeded') {
+        // Send email notification
+        await fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'booking',
+            data: {
+              ...data,
+              includeCprSign,
+              total,
+            },
+          }),
+        });
+
         router.push("/checkout/success");
       } else {
         throw new Error('Payment failed');

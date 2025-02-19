@@ -9,11 +9,43 @@ export default function ContactPage() {
     e.preventDefault();
     setFormStatus("submitting");
 
-    // In a real application, you would send this to your backend
-    // For now, we'll simulate a successful submission
-    setTimeout(() => {
+    try {
+      const formData = new FormData(e.currentTarget);
+      const data = {
+        name: formData.get('name')?.toString() || '',
+        email: formData.get('email')?.toString() || '',
+        phone: formData.get('phone')?.toString() || '',
+        message: formData.get('message')?.toString() || '',
+      };
+
+      // Submit to Netlify forms
+      const params = new URLSearchParams();
+      params.append('form-name', 'contact');
+      Object.entries(data).forEach(([key, value]) => {
+        params.append(key, value);
+      });
+
+      await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString(),
+      });
+
+      // Send email notification
+      await fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'contact',
+          data,
+        }),
+      });
+
       setFormStatus("success");
-    }, 1000);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setFormStatus("error");
+    }
   };
 
   return (
@@ -124,7 +156,14 @@ export default function ContactPage() {
               <h2 className="text-xl font-semibold text-gray-900 mb-6">
                 Send us a Message
               </h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form
+                name="contact"
+                method="POST"
+                data-netlify="true"
+                onSubmit={handleSubmit}
+                className="space-y-4"
+              >
+                <input type="hidden" name="form-name" value="contact" />
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     Name
