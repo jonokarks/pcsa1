@@ -1,5 +1,3 @@
-"use client";
-
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -113,15 +111,8 @@ export default function ContactPage() {
                 name="contact"
                 method="POST"
                 data-netlify="true"
-                netlify-honeypot="bot-field"
-                action="/contact/success"
                 className="space-y-4"
               >
-                <p className="hidden">
-                  <label>
-                    Don't fill this out if you're human: <input name="bot-field" />
-                  </label>
-                </p>
                 <input type="hidden" name="form-name" value="contact" />
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -181,7 +172,6 @@ export default function ContactPage() {
                 >
                   Send Message
                 </button>
-
               </form>
             </div>
           </div>
