@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { submitContactForm } from "@/app/actions/contact";
 
 export default function ContactPage() {
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -11,37 +13,15 @@ export default function ContactPage() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const data = {
-        name: formData.get('name')?.toString() || '',
-        email: formData.get('email')?.toString() || '',
-        phone: formData.get('phone')?.toString() || '',
-        message: formData.get('message')?.toString() || '',
-      };
+      const result = await submitContactForm(formData);
 
-      // Submit to Netlify forms
-      const params = new URLSearchParams();
-      params.append('form-name', 'contact');
-      Object.entries(data).forEach(([key, value]) => {
-        params.append(key, value);
-      });
-
-      await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString(),
-      });
-
-      // Send email notification
-      await fetch('/.netlify/functions/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'contact',
-          data,
-        }),
-      });
-
-      setFormStatus("success");
+      if (result.success) {
+        setFormStatus("success");
+        // Clear form
+        e.currentTarget.reset();
+      } else {
+        setFormStatus("error");
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
       setFormStatus("error");
@@ -157,13 +137,9 @@ export default function ContactPage() {
                 Send us a Message
               </h2>
               <form
-                name="contact"
-                method="POST"
-                data-netlify="true"
                 onSubmit={handleSubmit}
                 className="space-y-4"
               >
-                <input type="hidden" name="form-name" value="contact" />
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     Name

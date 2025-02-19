@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import PaymentForm from "@/components/PaymentForm";
+import { sendBookingConfirmation } from "@/app/actions/checkout";
 
 const defaultService = {
   id: "pool-inspection",
@@ -180,19 +181,16 @@ export default function CheckoutClient() {
       const paymentResult = await window.confirmStripePayment();
       
       if (paymentResult.status === 'succeeded') {
-        // Send email notification
-        await fetch('/.netlify/functions/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'booking',
-            data: {
-              ...data,
-              includeCprSign,
-              total,
-            },
-          }),
+        // Send booking confirmation email
+        const emailResult = await sendBookingConfirmation({
+          ...data,
+          includeCprSign,
+          total,
         });
+
+        if (!emailResult.success) {
+          console.error('Failed to send booking confirmation email');
+        }
 
         router.push("/checkout/success");
       } else {
