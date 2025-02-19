@@ -1,10 +1,6 @@
 "use client";
 
-import { useState } from "react";
-
 export default function ContactPage() {
-  const [submitted, setSubmitted] = useState(false);
-
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
@@ -117,10 +113,15 @@ export default function ContactPage() {
                 name="contact"
                 method="POST"
                 data-netlify="true"
-                action="/contact?success=true"
+                netlify-honeypot="bot-field"
+                action="/contact/success"
                 className="space-y-4"
-                onSubmit={() => setSubmitted(true)}
               >
+                <p className="hidden">
+                  <label>
+                    Don't fill this out if you're human: <input name="bot-field" />
+                  </label>
+                </p>
                 <input type="hidden" name="form-name" value="contact" />
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -181,11 +182,6 @@ export default function ContactPage() {
                   Send Message
                 </button>
 
-                {submitted && (
-                  <div className="p-4 bg-green-50 text-green-700 rounded-lg">
-                    Thank you for your message. We'll get back to you soon!
-                  </div>
-                )}
               </form>
             </div>
           </div>
