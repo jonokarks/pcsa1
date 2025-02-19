@@ -109,7 +109,15 @@ export default function CheckoutClient() {
         },
         body: JSON.stringify({
           amount: total,
-          items: [defaultService],
+          items: [
+            defaultService,
+            ...(includeCprSign ? [{
+              id: "cpr-sign",
+              name: "CPR Sign",
+              price: cprSignPrice,
+              description: "CPR Sign for pool safety"
+            }] : [])
+          ],
           includeCprSign,
           customerDetails: data,
           paymentIntentId,

@@ -18,8 +18,17 @@ interface CustomerDetails {
   notes?: string;
 }
 
+interface Item {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+}
+
 interface RequestBody {
   amount: number;
+  items: Item[];
+  includeCprSign: boolean;
   customerDetails?: CustomerDetails;
   paymentIntentId?: string;
 }
@@ -53,7 +62,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
     }
 
     const body = JSON.parse(event.body || '{}') as RequestBody;
-    const { amount, customerDetails, paymentIntentId } = body;
+    const { amount, items, includeCprSign, customerDetails, paymentIntentId } = body;
 
     // Convert amount to cents
     const amountInCents = Math.round(amount * 100);
@@ -69,6 +78,8 @@ export const handler: Handler = async (event: HandlerEvent) => {
         postcode: customerDetails?.postcode || '',
         preferredDate: customerDetails?.preferredDate || '',
         notes: customerDetails?.notes || '',
+        includeCprSign: includeCprSign ? "true" : "false",
+        items: JSON.stringify(items.map(item => item.name))
       };
 
       const updatedIntent = await stripe.paymentIntents.update(paymentIntentId, {
@@ -98,6 +109,8 @@ export const handler: Handler = async (event: HandlerEvent) => {
         },
         metadata: {
           service: "Pool Compliance Inspection",
+          includeCprSign: includeCprSign ? "true" : "false",
+          items: JSON.stringify(items.map(item => item.name)),
           timestamp: new Date().toISOString(),
         },
       });
