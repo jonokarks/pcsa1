@@ -180,7 +180,7 @@ export default function CheckoutClient() {
       const paymentResult = await window.confirmStripePayment();
       
       if (paymentResult.status === 'succeeded') {
-        // Submit to Netlify forms
+        // Submit the form data to Netlify
         const formData = new FormData();
         formData.append('form-name', 'booking');
         
@@ -194,13 +194,18 @@ export default function CheckoutClient() {
         formData.append('total', total.toString());
 
         try {
-          await fetch('/', {
+          const response = await fetch('/', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams(formData as any).toString(),
           });
+
+          if (!response.ok) {
+            throw new Error('Failed to submit booking details');
+          }
+
           router.push("/checkout/success");
         } catch (error) {
           console.error('Error submitting form:', error);
@@ -228,10 +233,16 @@ export default function CheckoutClient() {
                 name="booking"
                 method="POST"
                 data-netlify="true"
+                data-netlify-honeypot="bot-field"
                 onSubmit={handleSubmit(onSubmit)} 
                 className="bg-white rounded-lg shadow-lg p-6 space-y-6"
               >
                 <input type="hidden" name="form-name" value="booking" />
+                <p className="hidden">
+                  <label>
+                    Don't fill this out if you're human: <input name="bot-field" />
+                  </label>
+                </p>
                 <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
                 
                 <div className="grid grid-cols-2 gap-4">

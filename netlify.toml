@@ -42,23 +42,21 @@
 
 [[forms]]
   name = "contact"
-  subject = "New Contact Form Submission - Pool Compliance SA"
-  to = "info@poolcompliancesa.com.au"
 
 [[forms]]
   name = "booking"
-  subject = "New Pool Inspection Booking - Pool Compliance SA"
-  to = "info@poolcompliancesa.com.au"
 
 [[redirects]]
   from = "/contact/success"
-  to = "/contact/success/index.html"
+  to = "/.netlify/functions/next"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/checkout/success"
-  to = "/checkout/success/index.html"
+  to = "/.netlify/functions/next"
   status = 200
+  force = true
 
 [functions.next]
   included_files = ["app/api/**/*"]
