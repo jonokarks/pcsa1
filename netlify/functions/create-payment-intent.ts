@@ -68,6 +68,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
     const amountInCents = Math.round(amount * 100);
 
     if (paymentIntentId) {
+      // Only update metadata, not amount
       const metadata: Record<string, string> = {
         firstName: customerDetails?.firstName || '',
         lastName: customerDetails?.lastName || '',
@@ -83,7 +84,6 @@ export const handler: Handler = async (event: HandlerEvent) => {
       };
 
       const updatedIntent = await stripe.paymentIntents.update(paymentIntentId, {
-        amount: amountInCents,
         metadata
       });
 
@@ -101,6 +101,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
         }),
       };
     } else {
+      // Create new payment intent with amount and items
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amountInCents,
         currency: "aud",
