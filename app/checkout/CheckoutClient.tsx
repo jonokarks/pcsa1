@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import PaymentForm from "@/components/PaymentForm";
 
@@ -29,7 +29,8 @@ export default function CheckoutClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [includeCprSign, setIncludeCprSign] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string>("");
+  const [paymentIntentId, setPaymentIntentId] = useState<string>("");
   
   const {
     register,
@@ -41,12 +42,61 @@ export default function CheckoutClient() {
   const cprSignPrice = 30;
   const total = basePrice + (includeCprSign ? cprSignPrice : 0);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const createInitialPaymentIntent = async () => {
+      if (!mounted) return;
+      
+      setError(null);
+      
+      try {
+        const response = await fetch('/.netlify/functions/create-payment-intent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: total,
+            items: [defaultService],
+            includeCprSign,
+          }),
+        });
+
+        if (!mounted) return;
+
+        if (!response.ok) {
+          throw new Error('Failed to create payment intent');
+        }
+
+        const data = await response.json();
+        
+        if (data.clientSecret && data.paymentIntentId) {
+          setClientSecret(data.clientSecret);
+          setPaymentIntentId(data.paymentIntentId);
+        } else {
+          throw new Error('No client secret or payment intent ID in response');
+        }
+      } catch (error) {
+        if (mounted) {
+          setError('Error initializing payment. Please refresh the page and try again.');
+        }
+      }
+    };
+
+    createInitialPaymentIntent();
+
+    return () => {
+      mounted = false;
+    };
+  }, [includeCprSign, total]);
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Create payment intent only when form is submitted
+      // Update payment intent with customer details
       const response = await fetch('/.netlify/functions/create-payment-intent', {
         method: 'POST',
         headers: {
@@ -65,11 +115,12 @@ export default function CheckoutClient() {
           ],
           includeCprSign,
           customerDetails: data,
+          paymentIntentId,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create payment intent');
+        throw new Error('Failed to update payment intent');
       }
 
       const result = await response.json();
@@ -77,12 +128,6 @@ export default function CheckoutClient() {
       if (result.error) {
         throw new Error(result.error);
       }
-
-      // Set client secret to trigger PaymentForm render
-      setClientSecret(result.clientSecret);
-
-      // Wait for PaymentForm to initialize
-      await new Promise(resolve => setTimeout(resolve, 1000));
 
       if (!window.confirmStripePayment) {
         throw new Error('Payment form not initialized');
