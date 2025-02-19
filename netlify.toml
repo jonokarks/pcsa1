@@ -21,7 +21,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["stripe", "nodemailer"]
+  external_node_modules = ["stripe"]
   included_files = ["app/api/**/*"]
 
 [[headers]]
@@ -34,14 +34,17 @@
     Cache-Control = "no-store"
     Pragma = "no-cache"
 
+[forms]
+  [forms.contact]
+    name = "contact"
+    fields = { name = "string", email = "string", phone = "string", message = "string" }
+    notifications = [{ to = "info@poolcompliancesa.com.au", subject = "New Contact Form Submission" }]
+
+  [forms.booking]
+    name = "booking"
+    fields = { firstName = "string", lastName = "string", email = "string", phone = "string", address = "string", suburb = "string", postcode = "string", preferredDate = "string", notes = "string", includeCprSign = "string", total = "string" }
+    notifications = [{ to = "info@poolcompliancesa.com.au", subject = "New Pool Inspection Booking" }]
+
 [functions.next]
   included_files = ["app/api/**/*"]
-  external_node_modules = ["stripe", "nodemailer"]
-
-[template.environment]
-  SMTP_HOST = "SMTP server hostname (e.g., smtp.gmail.com)"
-  SMTP_PORT = "SMTP server port (e.g., 587)"
-  SMTP_USER = "SMTP username/email"
-  SMTP_PASS = "SMTP password/app password"
-  SMTP_SECURE = "Use TLS (true/false)"
-  SMTP_FROM = "From email address for notifications"
+  external_node_modules = ["stripe"]

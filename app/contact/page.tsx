@@ -1,32 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { submitContactForm } from "@/app/actions/contact";
 
 export default function ContactPage() {
-  const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setFormStatus("submitting");
-
-    try {
-      const formData = new FormData(e.currentTarget);
-      const result = await submitContactForm(formData);
-
-      if (result.success) {
-        setFormStatus("success");
-        // Clear form
-        e.currentTarget.reset();
-      } else {
-        setFormStatus("error");
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      setFormStatus("error");
-    }
-  };
+  const [submitted, setSubmitted] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -137,9 +114,14 @@ export default function ContactPage() {
                 Send us a Message
               </h2>
               <form
-                onSubmit={handleSubmit}
+                name="contact"
+                method="POST"
+                data-netlify="true"
+                action="/contact?success=true"
                 className="space-y-4"
+                onSubmit={() => setSubmitted(true)}
               >
+                <input type="hidden" name="form-name" value="contact" />
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     Name
@@ -194,23 +176,14 @@ export default function ContactPage() {
 
                 <button
                   type="submit"
-                  disabled={formStatus === "submitting"}
-                  className={`w-full bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition duration-300 ${
-                    formStatus === "submitting" ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition duration-300"
                 >
-                  {formStatus === "submitting" ? "Sending..." : "Send Message"}
+                  Send Message
                 </button>
 
-                {formStatus === "success" && (
+                {submitted && (
                   <div className="p-4 bg-green-50 text-green-700 rounded-lg">
                     Thank you for your message. We'll get back to you soon!
-                  </div>
-                )}
-
-                {formStatus === "error" && (
-                  <div className="p-4 bg-red-50 text-red-700 rounded-lg">
-                    There was an error sending your message. Please try again.
                   </div>
                 )}
               </form>

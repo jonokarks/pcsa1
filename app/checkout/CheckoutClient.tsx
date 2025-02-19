@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import PaymentForm from "@/components/PaymentForm";
-import { sendBookingConfirmation } from "@/app/actions/checkout";
 
 const defaultService = {
   id: "pool-inspection",
@@ -181,16 +180,20 @@ export default function CheckoutClient() {
       const paymentResult = await window.confirmStripePayment();
       
       if (paymentResult.status === 'succeeded') {
-        // Send booking confirmation email
-        const emailResult = await sendBookingConfirmation({
-          ...data,
-          includeCprSign,
-          total,
+        // Submit to Netlify forms
+        const formData = new FormData();
+        formData.append('form-name', 'booking');
+        Object.entries(data).forEach(([key, value]) => {
+          formData.append(key, value.toString());
         });
+        formData.append('includeCprSign', includeCprSign.toString());
+        formData.append('total', total.toString());
 
-        if (!emailResult.success) {
-          console.error('Failed to send booking confirmation email');
-        }
+        await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(formData as any).toString(),
+        });
 
         router.push("/checkout/success");
       } else {
@@ -211,7 +214,14 @@ export default function CheckoutClient() {
           
           <div className="grid lg:grid-cols-2 gap-8">
             <div>
-              <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow-lg p-6 space-y-6">
+              <form 
+                name="booking"
+                method="POST"
+                data-netlify="true"
+                onSubmit={handleSubmit(onSubmit)} 
+                className="bg-white rounded-lg shadow-lg p-6 space-y-6"
+              >
+                <input type="hidden" name="form-name" value="booking" />
                 <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
                 
                 <div className="grid grid-cols-2 gap-4">
