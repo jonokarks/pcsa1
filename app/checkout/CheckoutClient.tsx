@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import PaymentForm from "@/components/PaymentForm";
@@ -25,7 +24,6 @@ interface FormData {
 }
 
 export default function CheckoutClient() {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [includeCprSign, setIncludeCprSign] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -193,20 +191,21 @@ export default function CheckoutClient() {
         formData.append('includeCprSign', includeCprSign.toString());
         formData.append('total', total.toString());
 
-        try {
-          const response = await fetch('/', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams(formData as any).toString(),
-          });
+          try {
+            const response = await fetch('/.netlify/functions/next', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams(formData as any).toString(),
+            });
 
-          if (!response.ok) {
-            throw new Error('Failed to submit booking details');
-          }
+            if (!response.ok) {
+              throw new Error('Failed to submit booking details');
+            }
 
-          router.push("/checkout/success");
+            // Use window.location for hard navigation instead of client-side routing
+            window.location.href = "/checkout/success";
         } catch (error) {
           console.error('Error submitting form:', error);
           throw new Error('Failed to submit booking details');

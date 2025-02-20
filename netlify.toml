@@ -47,6 +47,12 @@
   name = "booking"
 
 [[redirects]]
+  from = "/checkout"
+  to = "/.netlify/functions/next"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/contact/success"
   to = "/.netlify/functions/next"
   status = 200
